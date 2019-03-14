@@ -15,6 +15,7 @@
     <modules>
         <module>ninjava-plugin</module>
         <module>ninjava-lib</module>
+        <module>ninjava-pack</module>
     </modules>
 
     <licenses>

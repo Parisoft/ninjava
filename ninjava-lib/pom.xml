@@ -14,9 +14,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.parisoft</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>ninjava-plugin</artifactId>
             <version>${project.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/../ninjava-plugin/target/ninjava-plugin-${project.version}.jar</systemPath>
         </dependency>
     </dependencies>
 
