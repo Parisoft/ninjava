@@ -8,14 +8,12 @@ import com.sun.source.util.TaskListener;
 import com.sun.source.util.TreeScanner;
 import com.sun.tools.javac.api.BasicJavacTask;
 import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import javax.tools.JavaFileManager;
 import javax.tools.StandardLocation;
 
@@ -48,20 +46,19 @@ public class NinJavaPlugin implements Plugin {
                 taskEvent.getCompilationUnit().accept(new TreeScanner<Void, Void>() {
                     @Override
                     public Void visitClass(ClassTree classTree, Void aVoid) {
-                        File out = fileManager.getLocation(StandardLocation.CLASS_OUTPUT).iterator().next();
-                        String[] path = ((JCTree.JCFieldAccess) taskEvent.getCompilationUnit().getPackageName()).getIdentifier()
-                                .toString()
-                                .concat(".")
-                                .concat(classTree.getSimpleName().toString())
-                                .split("\\.");
-                        path[path.length - 1] = path[path.length - 1].concat(".jasm");
-                        Path asm = Paths.get(out.getAbsolutePath(), path);
+                        File asmFile = null;
 
                         try {
-                            asm.toFile().getParentFile().mkdir();
-                            Files.createFile(asm);
+                            URI uri = fileManager.getFileForOutput(StandardLocation.CLASS_OUTPUT,
+                                                                   taskEvent.getCompilationUnit().getPackageName().toString(),
+                                                                   classTree.getSimpleName().toString() + ".jasm",
+                                                                   null)
+                                    .toUri();
+                            asmFile = new File(uri);
+                            asmFile.getParentFile().mkdirs();
+                            Files.createFile(asmFile.toPath());
                         } catch (IOException e) {
-                            log.error("Cannot create file " + asm + ": " + e.getMessage());
+                            log.error("Cannot create file " + asmFile + ": " + e.getMessage());
                         }
 
                         return super.visitClass(classTree, aVoid);

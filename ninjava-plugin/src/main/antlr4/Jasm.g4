@@ -1,630 +1,722 @@
-/*
-BSD License
-
-Copyright (c) 2013, Tom Everett
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-3. Neither the name of Tom Everett nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
 grammar Jasm;
 
 prog
-   : (line? EOL) +
-   ;
+	: (header? EOL)+ dtClass EOL*
+	;
 
-line
-   : comment
-   | instruction
-   | assemblerinstruction
-   | lbl
-   ;
+header
+    : dtImport
+    | comment
+    ;
 
-instruction
-   : label? opcode argumentlist? comment?
-   ;
+directive
+    : dtImport
+    | dtClass
+    | dtField
+    | dtVar
+    | dtZp
+    | dtDB
+    | dtDW
+    | dtPrg
+    | dtChr
+    | dtDmc
+    | dtFunction
+    | dtMethod
+    | dtMacro
+    | dtIncbin
+    | dtInclude
+    ;
 
-assemblerinstruction
-   : argument? assembleropcode argumentlist? comment?
-   ;
+dtImport
+    : '.import' qname comment?
+    ;
 
-assembleropcode
-   : ASSEMBLER_INSTRUCTION
-   ;
+dtClass
+    : '.class' dtFinal? dtSingleton? qname dtExtends? dtImplements? comment? EOL block '.endclass' comment?
+    ;
 
-lbl
-   : label ':'
-   ;
+dtFinal
+    : '.final'
+    ;
 
-argumentlist
-   : argument (',' argumentlist)?
-   ;
+dtSingleton
+    : '.singleton'
+    ;
+
+dtExtends
+    : '.extends' (qname|name)
+    ;
+
+dtImplements
+    : '.implements' (qname|name) (',' (qname|name))*
+    ;
+
+dtField
+    : '.field' name expr comment?
+    ;
+
+dtVar
+    : '.var' name expr comment?
+    ;
+
+dtZp
+    : '.zp' name expr comment?
+    ;
+
+dtDB
+    : '.db' expr (',' expr)* comment?
+    ;
+
+dtDW
+    : '.dw' expr (',' expr)* comment?
+    ;
+
+dtPrg
+    : '.prg' expr comment?
+    ;
+
+dtChr
+    : '.chr' expr comment?
+    ;
+
+dtDmc
+    : '.dmc' expr comment?
+    ;
+
+dtMethod
+    : '.met' dtFinal? fname comment? EOL body '.endmet' comment?
+    ;
+
+dtFunction
+    : '.fun' fname comment? EOL body '.endfun' comment?
+    ;
+
+dtMacro
+    : '.mac' name params comment? EOL body '.endmac' comment?
+    ;
+
+dtInclude
+    : '.include' string comment?
+    ;
+
+dtIncbin
+    : '.incbin' string comment?
+    ;
 
 label
-   : name
-   ;
+    : lname comment?
+    ;
 
-argument
-   : prefix? (number | name | string | '*') (('+' | '-') number)?
-   | '(' argument ')'
-   ;
+labelAssign
+    : name '=' expr comment?
+    ;
 
-prefix
-   : '#'
-   ;
+block
+    : (line? EOL)+
+    ;
 
-string
-   : STRING
-   ;
+line
+	: comment
+	| directive
+    | label
+    | labelAssign
+	;
+
+params
+    : pname*
+    ;
+
+body
+    : (stmt? EOF)+
+    ;
+
+stmt
+    : comment
+    | dtVar
+    | dtZp
+    | label
+    | instruction
+    ;
+
+instruction
+    : label? opcode arg? comment?
+    ;
+
+arg
+    : expr index?
+    | '(' expr index? ')'
+    ;
+
+index
+    : xIndex
+    | yIndex
+    ;
+
+xIndex
+    : IDX_X
+    ;
+
+yIndex
+    : IDX_Y
+    ;
+
+expr
+    : number
+    | string
+    ;
+
+identifier
+    : lname
+    | fname
+    | pname
+    | qname
+    | name
+    ;
+
+lname
+    : name ':'
+    | '+'+
+    | '-'+
+    ;
+
+fname
+    : name '(' (name (',' name)*)? ')'
+    ;
+
+pname
+    : '@' name
+    ;
+
+qname
+ 	: NAME ('.' NAME)+
+ 	;
 
 name
-   : NAME
-   ;
+	: NAME
+	;
+
+string
+	: STRING
+	;
 
 number
-   : NUMBER
-   ;
+	: HEX_NUM
+	| BIN_NUM
+	| DEC_NUM
+	| CHA_NUM
+	;
 
 comment
-   : COMMENT
-   ;
+	: COMMENT
+	;
 
 opcode
-   : ADC
-   | AND
-   | ASL
-   | BCC
-   | BCS
-   | BEQ
-   | BIT
-   | BMI
-   | BNE
-   | BPL
-   | BRA
-   | BRK
-   | BVC
-   | BVS
-   | CLC
-   | CLD
-   | CLI
-   | CLV
-   | CMP
-   | CPX
-   | CPY
-   | DEC
-   | DEX
-   | DEY
-   | EOR
-   | INC
-   | INX
-   | INY
-   | JMP
-   | JSR
-   | LDA
-   | LDY
-   | LDX
-   | LSR
-   | NOP
-   | ORA
-   | PHA
-   | PHX
-   | PHY
-   | PHP
-   | PLA
-   | PLP
-   | PLY
-   | ROL
-   | ROR
-   | RTI
-   | RTS
-   | SBC
-   | SEC
-   | SED
-   | SEI
-   | STA
-   | STX
-   | STY
-   | STZ
-   | TAX
-   | TAY
-   | TSX
-   | TXA
-   | TXS
-   | TYA
-   ;
-
-
-ASSEMBLER_INSTRUCTION
-   : 'ORG' | 'EQU' | 'ASC' | 'DS' | 'DFC' | '='
-   ;
-
+	: ADC
+    | AND
+    | ASL
+    | BCC
+    | BCS
+    | BEQ
+    | BIT
+    | BMI
+    | BNE
+    | BPL
+    | BVC
+    | BVS
+    | CLC
+    | CLD
+    | CLI
+    | CLV
+    | CMP
+    | CPX
+    | CPY
+    | DEC
+    | DEX
+    | DEY
+    | EOR
+    | INC
+    | INX
+    | INY
+    | JMP
+    | JSR
+    | JSS
+    | JCC
+    | JCS
+    | JEQ
+    | JIT
+    | JMI
+    | JNE
+    | JPL
+    | JVC
+    | JVS
+    | LDA
+    | LDY
+    | LDX
+    | LSR
+    | NOP
+    | ORA
+    | PHA
+    | PHP
+    | PLA
+    | PLP
+    | ROL
+    | ROR
+    | RTI
+    | RTS
+    | SBC
+    | SEC
+    | SED
+    | SEI
+    | STA
+    | STX
+    | STY
+    | TAX
+    | TAY
+    | TSX
+    | TXA
+    | TXS
+    | TYA
+	;
 
 fragment A
-   : ('a' | 'A')
-   ;
+	: ('a' | 'A')
+	;
 
 
 fragment B
-   : ('b' | 'B')
-   ;
+	: ('b' | 'B')
+	;
 
 
 fragment C
-   : ('c' | 'C')
-   ;
+	: ('c' | 'C')
+	;
 
 
 fragment D
-   : ('d' | 'D')
-   ;
+	: ('d' | 'D')
+	;
 
 
 fragment E
-   : ('e' | 'E')
-   ;
+	: ('e' | 'E')
+	;
 
 
 fragment F
-   : ('f' | 'F')
-   ;
+	: ('f' | 'F')
+	;
 
 
 fragment G
-   : ('g' | 'G')
-   ;
+	: ('g' | 'G')
+	;
 
 
 fragment H
-   : ('h' | 'H')
-   ;
+	: ('h' | 'H')
+	;
 
 
 fragment I
-   : ('i' | 'I')
-   ;
+	: ('i' | 'I')
+	;
 
 
 fragment J
-   : ('j' | 'J')
-   ;
+	: ('j' | 'J')
+	;
 
 
 fragment K
-   : ('k' | 'K')
-   ;
+	: ('k' | 'K')
+	;
 
 
 fragment L
-   : ('l' | 'L')
-   ;
+	: ('l' | 'L')
+	;
 
 
 fragment M
-   : ('m' | 'M')
-   ;
+	: ('m' | 'M')
+	;
 
 
 fragment N
-   : ('n' | 'N')
-   ;
+	: ('n' | 'N')
+	;
 
 
 fragment O
-   : ('o' | 'O')
-   ;
+	: ('o' | 'O')
+	;
 
 
 fragment P
-   : ('p' | 'P')
-   ;
+	: ('p' | 'P')
+	;
 
 
 fragment Q
-   : ('q' | 'Q')
-   ;
+	: ('q' | 'Q')
+	;
 
 
 fragment R
-   : ('r' | 'R')
-   ;
+	: ('r' | 'R')
+	;
 
 
 fragment S
-   : ('s' | 'S')
-   ;
+	: ('s' | 'S')
+	;
 
 
 fragment T
-   : ('t' | 'T')
-   ;
+	: ('t' | 'T')
+	;
 
 
 fragment U
-   : ('u' | 'U')
-   ;
+	: ('u' | 'U')
+	;
 
 
 fragment V
-   : ('v' | 'V')
-   ;
+	: ('v' | 'V')
+	;
 
 
 fragment W
-   : ('w' | 'W')
-   ;
+	: ('w' | 'W')
+	;
 
 
 fragment X
-   : ('x' | 'X')
-   ;
+	: ('x' | 'X')
+	;
 
 
 fragment Y
-   : ('y' | 'Y')
-   ;
+	: ('y' | 'Y')
+	;
 
 
 fragment Z
-   : ('z' | 'Z')
-   ;
+	: ('z' | 'Z')
+	;
+
+IDX_X
+    : ',' X
+    ;
+
+IDX_Y
+    : ',' Y
+    ;
 
 /*
 * opcodes
 */
 
 ADC
-   : A D C
-   ;
-
+	: A D C
+	;
 
 AND
-   : A N D
-   ;
-
+	: A N D
+	;
 
 ASL
-   : A S L
-   ;
-
+	: A S L
+	;
 
 BCC
-   : B C C
-   ;
-
+	: B C C
+	;
 
 BCS
-   : B C S
-   ;
-
+	: B C S
+	;
 
 BEQ
-   : B E Q
-   ;
-
+	: B E Q
+	;
 
 BIT
-   : B I T
-   ;
-
+	: B I T
+	;
 
 BMI
-   : B M I
-   ;
-
+	: B M I
+	;
 
 BNE
-   : B N E
-   ;
-
+	: B N E
+	;
 
 BPL
-   : B P L
-   ;
-
-
-BRA
-   : B R A
-   ;
-
-
-BRK
-   : B R K
-   ;
-
+	: B P L
+	;
 
 BVC
-   : B V C
-   ;
-
+	: B V C
+	;
 
 BVS
-   : B V S
-   ;
-
+	: B V S
+	;
 
 CLC
-   : C L C
-   ;
-
+	: C L C
+	;
 
 CLD
-   : C L D
-   ;
-
+	: C L D
+	;
 
 CLI
-   : C L I
-   ;
-
+	: C L I
+	;
 
 CLV
-   : C L V
-   ;
-
+	: C L V
+	;
 
 CMP
-   : C M P
-   ;
-
+	: C M P
+	;
 
 CPX
-   : C P X
-   ;
-
+	: C P X
+	;
 
 CPY
-   : C P Y
-   ;
-
+	: C P Y
+	;
 
 DEC
-   : D E C
-   ;
-
+	: D E C
+	;
 
 DEX
-   : D E X
-   ;
-
+	: D E X
+	;
 
 DEY
-   : D E Y
-   ;
-
+	: D E Y
+	;
 
 EOR
-   : E O R
-   ;
-
+	: E O R
+	;
 
 INC
-   : I N C
-   ;
-
+	: I N C
+	;
 
 INX
-   : I N X
-   ;
-
+	: I N X
+	;
 
 INY
-   : I N Y
-   ;
-
+	: I N Y
+	;
 
 JMP
-   : J M P
-   ;
-
+	: J M P
+	;
 
 JSR
-   : J S R
-   ;
+	: J S R
+	;
+
+JSS
+	: J S S
+	;
+
+JCC
+	: J C C
+	;
+
+JCS
+	: J C S
+	;
+
+JEQ
+	: J E Q
+	;
+
+JIT
+	: J I T
+	;
+
+JMI
+	: J M I
+	;
+
+JNE
+	: J N E
+	;
+
+JPL
+	: J P L
+	;
+
+JVC
+	: J V C
+	;
+
+JVS
+	: J V S
+	;
 
 
 LDA
-   : L D A
-   ;
-
+	: L D A
+	;
 
 LDY
-   : L D Y
-   ;
-
+	: L D Y
+	;
 
 LDX
-   : L D X
-   ;
-
+	: L D X
+	;
 
 LSR
-   : L S R
-   ;
-
+	: L S R
+	;
 
 NOP
-   : N O P
-   ;
-
+	: N O P
+	;
 
 ORA
-   : O R A
-   ;
-
+	: O R A
+	;
 
 PHA
-   : P H A
-   ;
-
-
-PHX
-   : P H X
-   ;
-
-
-PHY
-   : P H Y
-   ;
-
+	: P H A
+	;
 
 PHP
-   : P H P
-   ;
-
+	: P H P
+	;
 
 PLA
-   : P L A
-   ;
-
+	: P L A
+	;
 
 PLP
-   : P L P
-   ;
-
-
-PLY
-   : P L Y
-   ;
-
+	: P L P
+	;
 
 ROL
-   : R O L
-   ;
-
+	: R O L
+	;
 
 ROR
-   : R O R
-   ;
-
+	: R O R
+	;
 
 RTI
-   : R T I
-   ;
-
+	: R T I
+	;
 
 RTS
-   : R T S
-   ;
-
+	: R T S
+	;
 
 SBC
-   : S B C
-   ;
-
+	: S B C
+	;
 
 SEC
-   : S E C
-   ;
-
+	: S E C
+	;
 
 SED
-   : S E D
-   ;
-
+	: S E D
+	;
 
 SEI
-   : S E I
-   ;
-
+	: S E I
+	;
 
 STA
-   : S T A
-   ;
-
+	: S T A
+	;
 
 STX
-   : S T X
-   ;
-
+	: S T X
+	;
 
 STY
-   : S T Y
-   ;
-
-
-STZ
-   : S T Z
-   ;
-
+	: S T Y
+	;
 
 TAX
-   : T A X
-   ;
-
+	: T A X
+	;
 
 TAY
-   : T A Y
-   ;
-
+	: T A Y
+	;
 
 TSX
-   : T S X
-   ;
-
+	: T S X
+	;
 
 TXA
-   : T X A
-   ;
-
+	: T X A
+	;
 
 TXS
-   : T X S
-   ;
-
+	: T X S
+	;
 
 TYA
-   : T Y A
-   ;
+	: T Y A
+	;
 
 
 NAME
-   : [a-zA-Z] [a-zA-Z0-9."]*
-   ;
+	: [a-zA-Z_] [a-zA-Z0-9_]*
+	;
 
 
-NUMBER
-   : '$'? [0-9a-fA-F] +
-   ;
+HEX_NUM
+	: '$' [0-9a-fA-F] +
+	;
 
+BIN_NUM
+	: '%' [0-1]+
+	;
+
+DEC_NUM
+	: [0-9]+
+	;
+
+CHA_NUM
+	: '\''~ ["]'\''
+	;
 
 COMMENT
-   : ';' ~ [\r\n]* -> skip
-   ;
+	: ';' ~ [\r\n]* -> skip
+	;
 
 
 STRING
-   : '"' ~ ["]* '"'
-   ;
+	: '"' ~ ["]* '"'
+	;
 
 
 EOL
-   : [\r\n] +
-   ;
+	: [\r\n] +
+	;
 
 
 WS
-   : [ \t] -> skip
-   ;
+	: [ \t] -> skip
+	;
