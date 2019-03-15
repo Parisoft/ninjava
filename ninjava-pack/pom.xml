@@ -39,7 +39,7 @@
                         </goals>
                         <configuration>
                             <descriptors>
-                                <descriptor>src/main/assembly/pack.xml</descriptor>
+                                <descriptor>src/assembly/pack.xml</descriptor>
                             </descriptors>
                             <finalName>ninjava-${project.version}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>

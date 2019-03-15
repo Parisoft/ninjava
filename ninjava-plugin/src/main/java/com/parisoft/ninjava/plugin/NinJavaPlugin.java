@@ -1,4 +1,4 @@
-package games.parisoft.ninjava.plugin;
+package com.parisoft.ninjava.plugin;
 
 import com.sun.source.tree.ClassTree;
 import com.sun.source.util.JavacTask;
