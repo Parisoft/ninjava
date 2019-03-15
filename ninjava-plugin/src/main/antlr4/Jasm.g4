@@ -127,7 +127,7 @@ params
     ;
 
 body
-    : (stmt? EOF)+
+    : (stmt? EOL)+
     ;
 
 stmt
@@ -161,8 +161,14 @@ yIndex
     ;
 
 expr
-    : number
-    | string
+    : ('-' | '+' | '~'| '#' | '#<' | '#>') expr
+    | '.sizeof' '(' expr ')'
+    | expr ('*' | '/' | '%') expr
+    | expr ('+' | '-') expr
+    | expr ('<<' | '>>') expr
+    | '(' expr ')'
+    | number
+    | identifier
     ;
 
 identifier
