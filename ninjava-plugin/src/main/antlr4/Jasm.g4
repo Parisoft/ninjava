@@ -143,29 +143,19 @@ instruction
     ;
 
 arg
-    : expr index?
-    | '(' expr index? ')'
-    ;
-
-index
-    : xIndex
-    | yIndex
-    ;
-
-xIndex
-    : IDX_X
-    ;
-
-yIndex
-    : IDX_Y
+    : '(' expr ',' expr ')' #indirectX
+    | '(' expr ')' ',' expr #indirectY
+    | '(' expr ')' #indirect
+    | expr ',' expr #absoluteIndexed
+    | expr #absoluteOrImmediate
     ;
 
 expr
-    : ('-' | '+' | '~'| '#' | '#<' | '#>') expr
+    : op=('-' | '+' | '~'| '#' | '#<' | '#>') expr
     | '.sizeof' '(' expr ')'
-    | expr ('*' | '/' | '%') expr
-    | expr ('+' | '-') expr
-    | expr ('<<' | '>>') expr
+    | expr op=('*' | '/' | '%') expr
+    | expr op=('+' | '-') expr
+    | expr op=('<<' | '>>') expr
     | '(' expr ')'
     | number
     | identifier
@@ -412,14 +402,6 @@ fragment Y
 fragment Z
 	: ('z' | 'Z')
 	;
-
-IDX_X
-    : ',' X
-    ;
-
-IDX_Y
-    : ',' Y
-    ;
 
 /*
 * opcodes
