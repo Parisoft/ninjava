@@ -143,22 +143,22 @@ instruction
     ;
 
 arg
-    : '(' expr ',' expr ')' #indirectX
-    | '(' expr ')' ',' expr #indirectY
-    | '(' expr ')' #indirect
-    | expr ',' expr #absoluteIndexed
-    | expr #absoluteOrImmediate
+    : '(' expr ',' ('x'|'X') ')' #IndirectX
+    | '(' expr ')' ',' ('y'|'Y') #IndirectY
+    | '(' expr ')' #Indirect
+    | expr ',' ('x'|'X') #AbsoluteX
+    | expr ',' ('y'|'Y') #AbsoluteY
+    | expr #AbsoluteOrImmediate
     ;
 
 expr
-    : op=('-' | '+' | '~'| '#' | '#<' | '#>') expr
-    | '.sizeof' '(' expr ')'
-    | expr op=('*' | '/' | '%') expr
-    | expr op=('+' | '-') expr
-    | expr op=('<<' | '>>') expr
-    | '(' expr ')'
-    | number
-    | identifier
+    : op=('-' | '+' | '~'| '#' | '#<' | '#>' | '.sizeof') right=expr #UnaryExpr
+    | left=expr op=('*' | '/' | '%') right=expr #MulSubExpr
+    | left=expr op=('+' | '-') right=expr #AddSubExpr
+    | left=expr op=('<<' | '>>') right=expr #ShiftExpr
+    | '(' left=expr ')' #ParensExpr
+    | number #NumLiteral
+    | identifier #Reference
     ;
 
 identifier
