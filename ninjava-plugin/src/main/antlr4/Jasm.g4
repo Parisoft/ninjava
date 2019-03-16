@@ -143,16 +143,17 @@ instruction
     ;
 
 arg
-    : '(' expr ',' ('x'|'X') ')' #IndirectX
+    : '#' expr #Immediate
+    | '(' expr ',' ('x'|'X') ')' #IndirectX
     | '(' expr ')' ',' ('y'|'Y') #IndirectY
     | '(' expr ')' #Indirect
     | expr ',' ('x'|'X') #AbsoluteX
     | expr ',' ('y'|'Y') #AbsoluteY
-    | expr #AbsoluteOrImmediate
+    | expr #Absolute
     ;
 
 expr
-    : op=('-' | '+' | '~'| '#' | '#<' | '#>' | '.sizeof') right=expr #UnaryExpr
+    : op=('-' | '+' | '~'| '<' | '>' | '.sizeof') right=expr #UnaryExpr
     | left=expr op=('*' | '/' | '%') right=expr #MulSubExpr
     | left=expr op=('+' | '-') right=expr #AddSubExpr
     | left=expr op=('<<' | '>>') right=expr #ShiftExpr
@@ -239,7 +240,6 @@ opcode
     | JCC
     | JCS
     | JEQ
-    | JIT
     | JMI
     | JNE
     | JPL
@@ -533,10 +533,6 @@ JCS
 
 JEQ
 	: J E Q
-	;
-
-JIT
-	: J I T
 	;
 
 JMI
