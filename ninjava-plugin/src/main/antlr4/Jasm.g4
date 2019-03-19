@@ -5,8 +5,19 @@ file
 	;
 
 header
-    : dtImport
-    | comment
+    : comment
+    | dtImport
+    | iNesMap
+    | iNesPrg
+    | iNesChr
+    | iNesMir
+    | nes2ChrRAM
+    | nes2PrgRAM
+    | nes2Sub
+    | nes2TV
+    | nes2VS
+    | nes2BRAM
+    | nes2ChrBRAM
     ;
 
 directive
@@ -32,7 +43,7 @@ dtImport
     ;
 
 dtClass
-    : '.class' dtFinal? dtSingleton? qname dtExtends? dtImplements? comment? EOL block '.endclass' comment?
+    : '.class' dtFinal? dtSingleton? qname dtExtends? dtImplements? comment? (line? EOL)+ '.endclass' comment?
     ;
 
 dtFinal
@@ -44,11 +55,11 @@ dtSingleton
     ;
 
 dtExtends
-    : '.extends' (qname|name)
+    : '.extends' (qname | name)
     ;
 
 dtImplements
-    : '.implements' (qname|name) (',' (qname|name))*
+    : '.implements' (qname | name) (',' (qname | name))*
     ;
 
 dtField
@@ -129,8 +140,52 @@ dtRept
     : '.rept' expr comment? EOL body '.endrept' comment?
     ;
 
+iNesMap // Mapper number of NES ROM.
+    : '.inesmap' expr comment?
+    ;
+
+iNesPrg //  Number of 16KiB PRG ROM banks in a NES ROM.
+    : '.inesprg' expr comment?
+    ;
+
+iNesChr // Number of 8KiB CHR ROM banks in a NES ROM.
+    : '.ineschr' expr comment?
+    ;
+
+iNesMir // Mirroring mode of a NES ROM.
+    : '.inesmir' expr comment?
+    ;
+
+nes2ChrRAM // Amount of CHR RAM used by a NES ROM.
+    : '.nes2chrram' expr comment?
+    ;
+
+nes2PrgRAM // Amount of PRG RAM used by a NES ROM.
+    : '.nes2prgram' expr comment?
+    ;
+
+nes2Sub // Submapper number of NES ROM.
+    : '.nes2sub' expr comment?
+    ;
+
+nes2TV // TV mode of NES ROM: NTSC, PAL, or both (0, 1 or 2) ('N', 'P' or 'B')
+    : '.nes2tv' expr comment?
+    ;
+
+nes2VS // Sets ROM to use the Vs. Unisystem.
+    : '.nes2vs' expr comment?
+    ;
+
+nes2BRAM // Amount of battery-packed PRG RAM in NES ROM.
+    : '.nes2bram' expr comment?
+    ;
+
+nes2ChrBRAM // Amount of battery-packed CHR RAM in NES ROM.
+    : '.nes2chrbram' expr comment?
+    ;
+
 callMacro
-    : (name | qname) (expr (',' expr)*)?
+    : (name | qname) (expr (',' expr)*)? comment?
     ;
 
 label
@@ -139,10 +194,6 @@ label
 
 symbol
     : name '=' expr comment?
-    ;
-
-block
-    : (line? EOL)+
     ;
 
 line
