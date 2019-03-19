@@ -1,6 +1,6 @@
 grammar Jasm;
 
-prog
+file
 	: (header? EOL)+ dtClass EOL*
 	;
 
@@ -84,7 +84,7 @@ dtDmc
     ;
 
 dtMethod
-    : '.met' dtFinal? fname comment? EOL body '.endmet' comment?
+    : '.met' fname comment? EOL body '.endmet' comment?
     ;
 
 dtFunction
@@ -96,18 +96,48 @@ dtMacro
     ;
 
 dtInclude
-    : '.include' string comment?
+    : ('.include' | 'incsrc') string comment?
     ;
 
 dtIncbin
     : '.incbin' string comment?
     ;
 
+dtFree
+    : '.free' (name | qname | pname) comment?
+    ;
+
+dtIf
+    : '.if' expr comment? EOL body dtElse
+    ;
+
+dtElse
+    : '.else' comment? EOL body '.endif' comment? #Else
+    | '.else' dtIf #ElseIf
+    | '.endif' comment? #EndIf
+    ;
+
+dtIfDef
+    : '.ifdef' (name | qname | pname) comment? EOL body '.endif' comment?
+    ;
+
+dtIfNDef
+    : '.ifndef' (name | qname | pname) comment? EOL body '.endif' comment?
+    ;
+
+dtRept
+    : '.rept' expr comment? EOL body '.endrept' comment?
+    ;
+
+callMacro
+    : (name | qname) (expr (',' expr)*)?
+    ;
+
 label
     : lname comment?
     ;
 
-labelAssign
+symbol
     : name '=' expr comment?
     ;
 
@@ -119,7 +149,7 @@ line
 	: comment
 	| directive
     | label
-    | labelAssign
+    | symbol
 	;
 
 params
@@ -134,7 +164,14 @@ stmt
     : comment
     | dtVar
     | dtZp
+    | dtFree
+    | dtIf
+    | dtIfDef
+    | dtIfNDef
+    | dtRept
     | label
+    | symbol
+    | callMacro
     | instruction
     ;
 
@@ -144,19 +181,24 @@ instruction
 
 arg
     : '#' expr #Immediate
-    | '(' expr ',' ('x'|'X') ')' #IndirectX
-    | '(' expr ')' ',' ('y'|'Y') #IndirectY
+    | '(' expr ',' ('x' | 'X') ')' #IndirectX
+    | '(' expr ')' ',' ('y' | 'Y') #IndirectY
     | '(' expr ')' #Indirect
-    | expr ',' ('x'|'X') #AbsoluteX
-    | expr ',' ('y'|'Y') #AbsoluteY
+    | expr ',' ('x' | 'X') #AbsoluteX
+    | expr ',' ('y' | 'Y') #AbsoluteY
     | expr #Absolute
     ;
 
 expr
-    : op=('-' | '+' | '~'| '<' | '>' | '.sizeof') right=expr #UnaryExpr
-    | left=expr op=('*' | '/' | '%') right=expr #MulSubExpr
-    | left=expr op=('+' | '-') right=expr #AddSubExpr
+    : op=('-' | '+' | '~' | '!' | '<' | '>' | '.sizeof') right=expr #UnaryExpr
+    | left=expr op=('*' | '/' | '%') right=expr #MultiplicativeExpr
+    | left=expr op=('+' | '-') right=expr #AdditiveExpr
     | left=expr op=('<<' | '>>') right=expr #ShiftExpr
+    | left=expr op=('<' | '>' | '<=' | '>=') right=expr #RelationalExpr
+    | left=expr op=('==' | '!=') right=expr #EqualityExpr
+    | left=expr '&' right=expr #BitAndExpr
+    | left=expr '^' right=expr #BitXorExpr
+    | left=expr '|' right=expr #BitOr
     | '(' left=expr ')' #ParensExpr
     | number #NumLiteral
     | identifier #Reference
@@ -171,17 +213,17 @@ identifier
     ;
 
 lname
-    : name ':'
+    : NAME ':'
     | '+'+
     | '-'+
     ;
 
 fname
-    : name '(' (name (',' name)*)? ')'
+    : NAME '(' (NAME '[]'* (',' NAME '[]'*)*)? ')'
     ;
 
 pname
-    : '@' name
+    : PNAME
     ;
 
 qname
@@ -402,10 +444,6 @@ fragment Y
 fragment Z
 	: ('z' | 'Z')
 	;
-
-/*
-* opcodes
-*/
 
 ADC
 	: A D C
@@ -669,6 +707,9 @@ NAME
 	: [a-zA-Z_] [a-zA-Z0-9_]*
 	;
 
+PNAME
+    : '@' [a-zA-Z_] [a-zA-Z0-9_]*
+    ;
 
 HEX_NUM
 	: '$' [0-9a-fA-F] +
