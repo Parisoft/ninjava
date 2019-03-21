@@ -249,10 +249,11 @@ expr
     | left=expr op=('==' | '!=') right=expr #EqualityExpr
     | left=expr '&' right=expr #BitAndExpr
     | left=expr '^' right=expr #BitXorExpr
-    | left=expr '|' right=expr #BitOr
+    | left=expr '|' right=expr #BitOrExpr
     | '(' left=expr ')' #ParensExpr
     | number #NumLiteral
     | identifier #Reference
+    | '$' #PC
     ;
 
 identifier
