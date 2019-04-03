@@ -8,4 +8,5 @@ hs_err_pid*
 *.iws
 *.iml
 out/
+**/target/
 /ninjava-plugin/src/main/java/com/parisoft/ninjava/assembly/jasm/

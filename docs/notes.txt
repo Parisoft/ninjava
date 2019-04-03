@@ -1,0 +1,69 @@
+polyfarcall ; polymorphic on another bank
+polycall 	; polymorphic on same bank
+farcall 	; non-polymorphic on another bank
+call 		; non-polymorphic on same bank (just jsr)
+
+
+class
+	singleton?
+	final?
+	imports
+	superClass
+	interfaces
+	header
+	field
+		offset
+		size
+	var
+		size
+		segment
+	rom
+		values
+		segment
+	symbol
+		value
+	constructor
+		statements
+		segment
+	function
+		statements
+		segment
+	method
+		statements
+		segment
+	macro
+		statements
+		args
+
+statement
+	instruction
+		arg
+		kind
+	varDecl
+		size
+		segment
+	label
+		value
+	symbol
+		value
+	if
+		condition
+		statements
+	ifdef
+		symbol
+		statements
+	ifndef
+		symbol
+		statements
+	repeat
+		n
+		statements
+	free
+		symbol
+	callMacro
+		macro
+		args
+	callFunction
+		function
+	callMethod
+		method

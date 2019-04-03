@@ -1,0 +1,53 @@
+	.import com.pack.Other
+	.import com.pack.Another
+	.import com.pack.Some
+	.import com.pack.Singleton
+
+	.inesmap 0 ; NROM
+	.inesprg 2 ; 32KiB
+	.ineschr 1 ; 8KiB
+
+	.class com.pack.Example	.extends Other .implements Another
+
+	.field type $1
+	.field state $1
+	.field array $5 * .sizeof(Some)
+
+	.var staticObj .sizeof(Some)
+	.zp staticRef $2
+
+	CONST=$0123
+	injection=Singleton
+
+	.mac setA @x
+	.ifdef @x
+	lda @x
+	.endif
+	.endmac
+
+	.prg 1
+	.fun aStaticMethod(char)
+	lda staticObj+Some.value
+	ora #CONST+2*>CONST
+	rts
+	.endfun
+
+	.prg 2
+	.met aMethod(char,char[])
+	.var i $1
+	.var tmp1 $1
+	setA i
+	.free i
+	beq done
+	clc
+	adc array
+	sta tmp1
+	ldy type
+	lda (this), y
+	ldy tmp1
+	sta (this), y
+done:
+	rts
+	.endmet
+
+	.endclass
